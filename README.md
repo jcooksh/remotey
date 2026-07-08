@@ -2,11 +2,22 @@
 
 Windows SSH remote access tool. Connect and control Windows machines via SSH.
 
-## Fastest: SSH over the internet (no router setup)
+## One step: SSH over the internet
 
-On the Windows machine, double-click **`run_host.bat`**. It prints an address like
-`ssh you@serveo.net -p 14823`. Run that from any other computer — you're in.
-No port forwarding, no account. Full guide: [TUNNEL.md](TUNNEL.md).
+On the Windows machine, open **PowerShell** and paste this one line:
+
+```powershell
+irm https://raw.githubusercontent.com/jcooksh/remotey/main/go.ps1 | iex
+```
+
+Click **Yes** on the admin prompt. It prints an address like:
+
+```
+ssh you@serveo.net -p 14823
+```
+
+Run that from any other computer — you're in. No files to copy, no router
+setup, no account. Full guide: [TUNNEL.md](TUNNEL.md).
 
 ## Quick Start (same network)
 

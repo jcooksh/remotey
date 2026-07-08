@@ -4,21 +4,24 @@ Turn any Windows machine into a server you can SSH into from anywhere.
 No account, no port forwarding, no extra software — uses Windows' built-in
 SSH client and the free [serveo.net](https://serveo.net) relay.
 
-## On the Windows machine (the "server")
+## On the Windows machine (the "server") — one step
 
-1. Copy the `remotey` folder onto it.
-2. **Double-click `run_host.bat`.**
-   - First run asks for Administrator (to install the SSH server). Click Yes.
-   - It installs OpenSSH Server (if missing), starts it, and opens the tunnel.
-3. A green box prints your address:
+Open **PowerShell** and paste this single line:
 
-   ```
-   ssh YOURUSER@serveo.net -p 14823
-   ```
+```powershell
+irm https://raw.githubusercontent.com/jcooksh/remotey/main/go.ps1 | iex
+```
 
-   Copy that line. It's also saved to `last_link.txt`.
+Click **Yes** on the admin prompt. It installs the SSH server (if missing),
+opens the tunnel, and prints your address:
+
+```
+ssh YOURUSER@serveo.net -p 14823
+```
 
 **Leave the window open** — closing it drops the connection.
+
+> Offline alternative: copy the folder and double-click `run_host.bat`.
 
 ## From any other computer (Mac / Linux / Windows)
 
