@@ -2,22 +2,22 @@
 
 Windows SSH remote access tool. Connect and control Windows machines via SSH.
 
-## One step: SSH over the internet
+## SSH into Windows from your Mac (over the internet)
 
-On the Windows machine, open **PowerShell** and paste this one line:
+**On your Mac**, run:
 
-```powershell
-irm https://raw.githubusercontent.com/jcooksh/remotey/main/go.ps1 | iex
+```bash
+./remotey
 ```
 
-Click **Yes** on the admin prompt. It prints an address like:
+It prints one command. **Paste that command into PowerShell on the Windows
+machine** and click *Yes* on the admin prompt. Your Mac detects when it's live
+and **connects you automatically** — no address to copy by hand.
 
-```
-ssh you@serveo.net -p 14823
-```
+- Only your Mac can log in (your key is baked into the command).
+- No router setup, no account, no files to copy onto Windows.
 
-Run that from any other computer — you're in. No files to copy, no router
-setup, no account. Full guide: [TUNNEL.md](TUNNEL.md).
+Full guide: [TUNNEL.md](TUNNEL.md).
 
 ## Quick Start (same network)
 

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Remotey (Mac/Linux side).
+#   ./remotey [windows-username]
+# Prints one command to paste on your Windows machine, waits for it to come
+# online, then drops you into an SSH shell automatically.
+set -euo pipefail
+
+RELAY="bore.pub"
+RAW="https://raw.githubusercontent.com/jcooksh/remotey/main/go.ps1"
+CFG="$HOME/.remotey"
+KEY="$HOME/.ssh/remotey_key"
+mkdir -p "$CFG"
+
+# 1. Your SSH key (made once; only this Mac can connect).
+mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+if [ ! -f "$KEY" ]; then
+    echo "[*] Creating your SSH key (one time)..."
+    ssh-keygen -t ed25519 -f "$KEY" -N "" -C "remotey" >/dev/null
+fi
+PUB="$(cat "$KEY.pub")"
+
+# 2. Windows username (arg, saved, or ask once).
+WINUSER="${1:-}"
+if [ -z "$WINUSER" ] && [ -f "$CFG/winuser" ]; then WINUSER="$(cat "$CFG/winuser")"; fi
+if [ -z "$WINUSER" ]; then
+    read -r -p "Your Windows username: " WINUSER
+fi
+echo "$WINUSER" > "$CFG/winuser"
+
+# 3. A fixed port this Mac owns (picked once, reused).
+if [ "${2:-}" = "--new" ] || [ ! -f "$CFG/port" ]; then
+    echo $(( (RANDOM % 30000) + 20000 )) > "$CFG/port"
+fi
+PORT="$(cat "$CFG/port")"
+
+# 4. The command to run on Windows.
+CMD="\$env:RP='$PORT'; \$env:RK='$PUB'; irm $RAW | iex"
+
+cat <<EOF
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  STEP 1  On the Windows machine, open PowerShell, paste:   │
+  └──────────────────────────────────────────────────────────┘
+
+$CMD
+
+  (Click "Yes" on the admin prompt.)
+
+  STEP 2  Waiting for Windows to come online...
+EOF
+
+# 5. Poll the relay port until the tunnel is up.
+until (exec 3<>"/dev/tcp/$RELAY/$PORT") 2>/dev/null; do
+    printf "."
+    sleep 2
+done
+exec 3>&- 2>/dev/null || true
+echo ""
+echo "  ✅ Online — connecting..."
+echo ""
+
+# 6. Connect.
+exec ssh -i "$KEY" -o StrictHostKeyChecking=no "$WINUSER@$RELAY" -p "$PORT"

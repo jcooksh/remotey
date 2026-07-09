@@ -1,56 +1,43 @@
-# Remotey Tunnel — SSH into Windows over the internet (no router config)
+# Remotey Tunnel — SSH into Windows from your Mac (no router setup)
 
-Turn any Windows machine into a server you can SSH into from anywhere.
-No account, no port forwarding, no extra software — uses Windows' built-in
-SSH client and the free [serveo.net](https://serveo.net) relay.
+You drive everything from your Mac. It hands you one command to run on the
+Windows machine, then connects you automatically when that machine comes online.
 
-## On the Windows machine (the "server") — one step
+## How it works
 
-Open **PowerShell** and paste this single line:
+1. **Mac:** `./remotey` makes your SSH key (once), picks a port it owns, and
+   prints a single PowerShell command with your public key + that port baked in.
+   Then it waits.
+2. **Windows:** you paste that command into PowerShell. It installs the SSH
+   server, downloads a tiny tunnel tool ([bore](https://github.com/ekzhang/bore)),
+   trusts only your Mac's key, and opens a tunnel on the port your Mac chose.
+3. **Mac:** detects the port is live and drops you straight into a shell.
 
-```powershell
-irm https://raw.githubusercontent.com/jcooksh/remotey/main/go.ps1 | iex
-```
+Because the Mac picks the port, it already knows the exact address — no copying
+the connection string from the Windows screen.
 
-Click **Yes** on the admin prompt. It installs the SSH server (if missing),
-opens the tunnel, and prints your address:
+## Use it
 
-```
-ssh YOURUSER@serveo.net -p 14823
-```
-
-**Leave the window open** — closing it drops the connection.
-
-> Offline alternative: copy the folder and double-click `run_host.bat`.
-
-## From any other computer (Mac / Linux / Windows)
-
-Paste the command it gave you:
+**On your Mac:**
 
 ```bash
-ssh YOURUSER@serveo.net -p 14823
+./remotey                # asks your Windows username the first time
 ```
 
-Enter your **Windows password**. You're now in a shell on the Windows box.
-Run PowerShell, start services, whatever — use it like a server.
+Copy the command it prints. **On the Windows machine**, open PowerShell, paste
+it, click **Yes** on the admin prompt. Back on the Mac it connects by itself.
 
-## Notes / gotchas
+## Notes
 
-- **The port changes each time** you restart the tunnel (serveo assigns a random
-  one on the free relay). Re-run `run_host.bat` and grab the new line.
-- **serveo can be down sometimes.** To use a different relay:
-  ```powershell
-  $env:REMOTEY_TUNNEL="your-relay-host"; .\tunnel_host.ps1
-  ```
-- **No Python needed on the Windows host** — it's pure PowerShell.
-
-## Security
-
-This puts a Windows login prompt on the public internet (behind an obscure
-random port). Protect it:
-
-1. Use a **strong Windows password**, OR
-2. Set up **SSH keys** and disable password auth (see `SETUP.md`).
-
-Anyone with the address + your password/key can control the machine. Only share
-it with yourself.
+- **Only your Mac can connect.** The Windows side trusts just the key
+  `~/.ssh/remotey_key` that lives on your Mac. Nobody else can log in even if
+  they find the port.
+- **The port is fixed** to your Mac, saved in `~/.remotey/port`. Want a new one:
+  `./remotey "" --new`.
+- **Keep the Windows PowerShell window open** — closing it drops the tunnel.
+  Re-paste the command to bring it back.
+- **Different relay:** `bore.pub` is a free public server. If it's down you can
+  run your own bore server and set `REMOTEY_TUNNEL` / edit `go.ps1`.
+- **Password login stays on** as a backup so you can't lock yourself out
+  remotely. To go key-only, set `PasswordAuthentication no` in
+  `C:\ProgramData\ssh\sshd_config` and `Restart-Service sshd`.
